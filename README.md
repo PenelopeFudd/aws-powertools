@@ -42,7 +42,7 @@ These files are bash scripts, using the AWS command line tool 'aws', the 'jq' co
 
 ```
 $ aws-delete-all.sh
-Usage: ./aws-delete-all.sh [-p profile] [-r region] [-c confirmstring] [-v]
+Usage: aws-delete-all.sh [-p profile] [-r region] [-c confirmstring] [-v]
 
 __        ___    ____  _   _ ___ _   _  ____ _
 \ \      / / \  |  _ \| \ | |_ _| \ | |/ ___| |
@@ -55,25 +55,36 @@ __        ___    ____  _   _ ___ _   _  ____ _
   region of the given AWS account.
 
   [1]: Here, 'all' means:
-      Autoscaling groups
-      Instances
-      Launch configurations
-      ELB load balancers
-      ELBv2/ALB load balancers
-      Elastic Network Interfaces
-      Virtual Private Clusters (VPC)
-      Subnets
-      Security groups
-      Gateways
+    * Autoscaling groups
+    * Instances
+    * Launch configurations
+    * ELB load balancers
+    * ELBv2/ALB load balancers
+    * Elastic Network Interfaces
+    * Virtual Private Clusters (VPC)
+    * Subnets
+    * Security groups
+    * Gateways
+    * CloudFormation templates and everything they created
+    * ConfigService
+    * DynamoDB Tables
+    * EBS Volumes
+    * Elastic IPs
+    * ElastiCache
+    * Kinesis Streams
+    * Lambda Functions
+    * RDS Databases
+    * SQS Queues
+
+      It does not delete S3 objects or buckets.  To do that, run 'aws-list-s3.sh | xargs -n 1 aws-delete-s3-bucket.sh' separately.
 
 Options:
-  -p default: specify the profile for authentication and region selection (see /home/chowes/.aws/config)
+  -p profile: specify the profile for authentication and region selection (see /home/chowes/.aws/config)
   -r region: specify the region, eg. us-west-2.  The default region comes from the profile.
   -v: run in verbose mode
   -c confirmstring: confirm you actually want to delete everything.
       Run this to confirm:
-        ./aws-delete-all.sh -c 2019-04-24-18:17
-
+        aws-delete-all.sh -c 2019-04-25-01:20
 ```
 
 ### Installing
