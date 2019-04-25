@@ -3,7 +3,7 @@
 # Parse arguments:
 TEMP=$(getopt -o p:vj -l profile:,verbose,json -- "$@")
 if [ $? != 0 ]; then 
-  echo "Usage: $0 [-p profile] [-v] [-j] function"
+  echo "Usage: ${0##*/} [-p profile] [-v] [-j] function"
   echo "  This will generate the aws cli commands to recreate permissions"
   echo "  on the given function."
   echo "  Options:"
@@ -35,7 +35,7 @@ if [[ "$JSON" == 1 ]]; then echo "$a" | jq -S '.Functions | sort_by(.FunctionNam
 echo "$a" | jq -r ".Functions[].FunctionName" | sort
 FUNC="$1"
 if [[ "$FUNC" == "" ]]; then
-  echo "Usage: $0 lambda-function"
+  echo "Usage: ${0##*/} lambda-function"
   echo "  This will generate the aws cli commands to recreate permissions"
   echo "  on the given function."
   exit 1

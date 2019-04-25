@@ -12,7 +12,7 @@ done
 shift "$((OPTIND-1))"
 
 if [[ "$4" == "" ]]; then 
-  echo "Usage: $0 [-p profile] [-r region] asg-name min max desired"
+  echo "Usage: ${0##*/} [-p profile] [-r region] asg-name min max desired"
   echo "  This script will set the minimum, maximum and desired size limits of the specified ASG."
   exit 1
 fi

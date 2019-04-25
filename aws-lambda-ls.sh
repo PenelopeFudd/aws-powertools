@@ -3,7 +3,7 @@
 # Parse arguments:
 TEMP=$(getopt -o p:vj -l profile:,verbose,json -- "$@")
 if [ $? != 0 ]; then 
-  echo "Usage: $0 [-p profile] [-v] [-j]"
+  echo "Usage: ${0##*/} [-p profile] [-v] [-j]"
   echo "  This script lists the lambda functions in the account."
   echo "  Options:"
   echo "    -v: Be verbose"

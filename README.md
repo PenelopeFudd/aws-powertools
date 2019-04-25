@@ -1,11 +1,40 @@
-# AWS Power Tools
+# AWS Powertools
 
-Have you ever wanted to list all of the resources set up in your AWS account?  Or have you gotten so frustrated that you just wanted to delete everything and start over?  Then AWS Powertools are for you!  The commands 'aws-list-all.sh' and 'aws-delete-all.sh' do what they say on the tin, at least for dynamodb, gw, lbv2, asg, ebs-volumes, instance, lcs, sg, cloudformation, eip, kinesis, nat, sqs, cloudwatch-alarms, elasticache, lambda, rds, subnet, configservice, eni, lb, and vpc.  There are additional commands for delete s3 objects and buckets, but they're commented out in the 'aws-delete-all.sh' script because they're deleting a bit more than most people expect.
+* Have you ever wanted to list all of the resources set up in your AWS account?
+
+* Have you gotten so frustrated that you just wanted to delete everything in your AWS account and start over?
+
+Then AWS Powertools are for you!
+
+The commands 'aws-list-all.sh' and 'aws-delete-all.sh' do what they say on the tin, at least for:
+* AutoScaling groups
+* AutoScaling Launch Configurations
+* CloudFormation templates
+* Cloudwatch alarms
+* Configuration service entries
+* DynamoDB tables
+* EBS Volumes
+* EC2 Instances
+* Elasticache instances
+* Elastic IPs
+* Elastic Network Interfaces
+* ELB load balancers
+* ELB V2
+* Kinesis streams
+* Lambda functions
+* RDS databases
+* SQS queues
+* VPC Gateways
+* VPC NAT gateways
+* VPC Security Groups
+* VPC Subnets
+* VPCs
+
+There's a command for deleting S3 buckets, but it's commented out in the 'aws-delete-all.sh' script.
 
 ## Getting Started
 
-If you can run 'aws-list-instances.sh -v -r us-east-2' and get a nice list of the instances in that region, all of the
-'aws-list-*.sh' scripts should work, as well as all of the 'aws-delete-*.sh' scripts, with the exception of 'aws-delete-all.sh'.
+If the command 'aws-list-instances.sh -v -r us-east-2' works, then all of the scripts should work except for 'aws-delete-all.sh', since it uses [GNU parallel](https://www.gnu.org/s/parallel/) to speed up the Apocalypse (not to be confused with the Alpacalypse, where the world is destroyed by an invasion of [alpacas](https://en.wikipedia.org/wiki/Alpaca)).
 
 ### Prerequisites
 

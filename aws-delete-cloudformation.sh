@@ -11,7 +11,7 @@ while getopts ":r:p:v" opt; do
 done
 shift $((OPTIND-1))
 if [[ "$1" == "" ]]; then
-  echo "Usage: $0 [-p profile] [-r region] stack-name"
+  echo "Usage: ${0##*/} [-p profile] [-r region] stack-name"
   echo "  This will delete the given cloudformation stack"
   exit 1
 fi
@@ -45,18 +45,11 @@ if [[ "$result" =~ An.error.occurred ]]; then
 fi
 echo ""
 
-# Get the Isengard link for watching this stack:
-URL=$(jq -n --arg account "$account" --arg role "$role" --arg StackId "$StackId" '
-  ( "cloudformation/home?region=us-west-2#/stack/detail?stackId=\($StackId)" | @uri ) as $destination |
-    "https://isengard.amazon.com/federate?account=\($account)&role=\($role)&destination=\($destination)"
-  ')
-echo "Updates here: $URL"
-echo ""
-
 function getstatus() {
   aws $PROFILE $REGION cloudformation describe-stacks --stack-name "$1" | jq -r '.Stacks[] | .StackStatus'
 }
 
+echo "Waiting for stack deletion:"
 START=$(date +%s)
 while sleep 10; do
   status=$(getstatus "$StackId")

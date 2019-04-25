@@ -13,7 +13,7 @@ done
 shift $((OPTIND-1))
 
 if [[ "$1" == "" ]]; then
-  echo "Usage: $0 s3://name-of-bucket-to-delete"
+  echo "Usage: ${0##*/} s3://name-of-bucket-to-delete"
   echo "  This will delete all of the bucket's objects in parallel, then delete the bucket."
   exit 0
 fi

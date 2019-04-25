@@ -15,7 +15,7 @@ shift $((OPTIND-1))
 
 NOW=$(date +"%F-%H:%M")
 if [[ "$CONFIRM" != "$NOW" ]]; then
-  echo "Usage: $0 [-p profile] [-r region] [-c confirmstring] [-v]"
+  echo "Usage: ${0##*/} [-p profile] [-r region] [-c confirmstring] [-v]"
   echo ""
   echo "__        ___    ____  _   _ ___ _   _  ____ _ "
   echo "\ \      / / \  |  _ \| \ | |_ _| \ | |/ ___| |"
@@ -28,28 +28,40 @@ if [[ "$CONFIRM" != "$NOW" ]]; then
   echo "  region of the given AWS account."
   echo ""
   echo "  [1]: Here, 'all' means:"
-  echo "      Autoscaling groups"
-  echo "      Instances"
-  echo "      Launch configurations"
-  echo "      ELB load balancers"
-  echo "      ELBv2/ALB load balancers"
-  echo "      Elastic Network Interfaces"
-  echo "      Virtual Private Clusters (VPC)"
-  echo "      Subnets"
-  echo "      Security groups"
-  echo "      Gateways"
+  echo "    * Autoscaling groups"
+  echo "    * Instances"
+  echo "    * Launch configurations"
+  echo "    * ELB load balancers"
+  echo "    * ELBv2/ALB load balancers"
+  echo "    * Elastic Network Interfaces"
+  echo "    * Virtual Private Clusters (VPC)"
+  echo "    * Subnets"
+  echo "    * Security groups"
+  echo "    * Gateways"
+  echo "    * CloudFormation templates and everything they created"
+  echo "    * ConfigService"
+  echo "    * DynamoDB Tables"
+  echo "    * EBS Volumes"
+  echo "    * Elastic IPs"
+  echo "    * ElastiCache"
+  echo "    * Kinesis Streams"
+  echo "    * Lambda Functions"
+  echo "    * RDS Databases"
+  echo "    * SQS Queues"
+  echo ""
+  echo "      It does not delete S3 objects or buckets.  To do that, run 'aws-list-s3.sh | xargs -n 1 aws-delete-s3-bucket.sh' separately."
   echo ""
   echo "Options:"
-  echo "  -p default: specify the profile for authentication and region selection (see $HOME/.aws/config)"
+  echo "  -p profile: specify the profile for authentication and region selection (see $HOME/.aws/config)"
   echo "  -r region: specify the region, eg. us-west-2.  The default region comes from the profile."
   echo "  -v: run in verbose mode"
   echo "  -c confirmstring: confirm you actually want to delete everything."
   echo "      Run this to confirm:"
-  echo "        $0 $PROFILE$REGION$VERBOSE-c $NOW"
+  echo "        ${0##*/} $PROFILE$REGION$VERBOSE-c $NOW"
   exit 1
 fi
 
-echo "       **** Deleting everything in profile $PROFILE"
+echo "       **** Deleting almost everything in profile $PROFILE and region $REGION"
 echo ""
 
 function doit() { parallel -j 20 --tag "$@";}
@@ -83,7 +95,7 @@ aws-list-lambda.sh            $PROFILE $REGION $VERBOSE | doit aws-delete-lambda
 echo Deleting RDSs:
 aws-list-rds.sh               $PROFILE $REGION $VERBOSE | doit aws-delete-rds.sh               $PROFILE $REGION $VERBOSE
 #echo Deleting S3s:
-#aws-list-s3.sh                $PROFILE $REGION $VERBOSE | doit aws-delete-s3-bucket.sh         $PROFILE $REGION $VERBOSE > /dev/null
+#aws-list-s3.sh                $PROFILE $REGION $VERBOSE | doit aws-delete-s3-bucket.sh         $PROFILE $REGION $VERBOSE
 echo Deleting SQSs:
 aws-list-sqs.sh               $PROFILE $REGION $VERBOSE | doit aws-delete-sqs.sh               $PROFILE $REGION $VERBOSE
 

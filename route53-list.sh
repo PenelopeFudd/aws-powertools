@@ -1,6 +1,6 @@
 #!/bin/bash
 if [[ "$1" == "" ]]; then
-  echo "Usage: $0 profile [id]"
+  echo "Usage: ${0##*/} profile [id]"
   echo "  Given a profile, this will list the ids and names of its hosted zones."
   echo "  Given a profile and id, this will list the records in a hosted zone."
   echo "Example:"

@@ -19,8 +19,6 @@ sleeptime=2
 count=20
 while ! aws $PROFILE $REGION autoscaling describe-auto-scaling-groups --auto-scaling-group-name="$1" | grep -q '"AutoScalingGroups": \[\]'; do
   sleep $sleeptime
-#  sleeptime=$(( $sleeptime + 1 ))
-#  if [[ "$sleeptime" > 60 ]]; then sleeptime=60; fi
   count=$(( count - 1 ))
   if [[ "$count" -lt 1 ]]; then echo "Timeout deleting $1" >&2; exit 1; fi
 done
