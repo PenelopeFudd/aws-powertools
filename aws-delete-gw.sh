@@ -10,4 +10,14 @@ while getopts ":r:p:v" opt; do
   esac
 done
 shift $((OPTIND-1))
+
+data=$(aws $PROFILE $REGION ec2 describe-internet-gateways --internet-gateway-ids "$1")
+if [[ "$data" == "" ]]; then exit 1; fi
+
+vpcid=$(echo "$data" | jq -r '.InternetGateways[0].Attachments[].VpcId')
+if [[ "$vpcid" != "null" ]]; then
+  for vpc in $vpcid; do
+    aws $PROFILE $REGION ec2 detach-internet-gateway --internet-gateway-id "$1" --vpc-id "$vpc"
+  done
+fi
 aws $PROFILE $REGION ec2 delete-internet-gateway --internet-gateway-id "$1"

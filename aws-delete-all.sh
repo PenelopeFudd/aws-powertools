@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Exit if errors happen:
+set -e
+
 # Parse arguments:
 while getopts ":r:p:c:v" opt; do
   case $opt in
@@ -66,6 +69,9 @@ echo ""
 
 function doit() { parallel -j 20 --tag "$@";}
 
+echo Deleting CloudFormation Stacks:
+aws-list-cloudformation.sh    $PROFILE $REGION $VERBOSE | doit aws-delete-cloudformation.sh    $PROFILE $REGION $VERBOSE
+
 echo Deleting ASGs:
 aws-list-asgs.sh              $PROFILE $REGION $VERBOSE | doit aws-delete-asg.sh               $PROFILE $REGION $VERBOSE
 echo Deleting Instances:
@@ -112,5 +118,3 @@ aws-list-sg.sh                $PROFILE $REGION $VERBOSE | doit aws-delete-sg.sh 
 
 echo Deleting VPCs:
 aws-list-vpcs.sh              $PROFILE $REGION $VERBOSE | doit aws-delete-vpc.sh               $PROFILE $REGION $VERBOSE
-echo Deleting CloudFormation Stacks:
-aws-list-cloudformation.sh    $PROFILE $REGION $VERBOSE | doit aws-delete-cloudformation.sh    $PROFILE $REGION $VERBOSE
