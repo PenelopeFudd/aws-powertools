@@ -14,11 +14,10 @@ shift $((OPTIND-1))
 
 if ! which jq > /dev/null 2>&1; then echo "The 'jq' command is not installed, aborting." >&2; exit 1; fi
 
-
 if [[ "$VERBOSE" == 1 ]]; then
-  aws $PROFILE $REGION ec2 describe-security-groups | jq -r '.SecurityGroups[] | [.GroupId,.GroupName] | @csv'  
+  aws $PROFILE $REGION ec2 describe-security-groups | jq -r '.SecurityGroups[] | select(.GroupName != "default") | [.GroupId,.GroupName] | @csv'  
 elif [[ "$VERBOSE" == 2 ]]; then
   aws $PROFILE $REGION ec2 describe-security-groups | jq .
 else
-  aws $PROFILE $REGION ec2 describe-security-groups | jq -r '.SecurityGroups[].GroupId'  
+  aws $PROFILE $REGION ec2 describe-security-groups | jq -r '.SecurityGroups[] | select(.GroupName != "default") | .GroupId'  
 fi
