@@ -20,49 +20,26 @@ if ! aws $AWSPROFILE sts get-caller-identity > /dev/null 2>&1; then
   exit 1
 fi
 
-echo '#=== ASGS:'
-aws-list-asgs.sh $PROFILE $REGION $VERBOSE
-echo '#=== AUTOSCALING-INSTANCES:'
-aws-list-autoscaling-instances.sh $PROFILE $REGION $VERBOSE
-echo '#=== CLOUDWATCH-ALARMS:'
-aws-list-cloudwatch-alarms.sh $PROFILE $REGION $VERBOSE
-echo '#=== CONFIGSERVICE:'
-aws-list-configservice.sh $PROFILE $REGION $VERBOSE
-echo '#=== DYNAMODB:'
-aws-list-dynamodb.sh $PROFILE $REGION $VERBOSE
-echo '#=== EBS-VOLUMES:'
-aws-list-ebs-volumes.sh $PROFILE $REGION $VERBOSE
-echo '#=== EIPs:'
-aws-list-eip.sh $PROFILE $REGION $VERBOSE
-echo '#=== ELASTICACHE:'
-aws-list-elasticache.sh $PROFILE $REGION $VERBOSE
-echo '#=== ENI:'
-aws-list-eni.sh $PROFILE $REGION $VERBOSE
-echo '#=== GW:'
-aws-list-gw.sh $PROFILE $REGION $VERBOSE
-echo '#=== INSTANCES:'
-aws-list-instances.sh $PROFILE $REGION $VERBOSE
-echo '#=== KINESIS:'
-aws-list-kinesis.sh $PROFILE $REGION $VERBOSE
-echo '#=== LAMBDA:'
-aws-list-lambda.sh $PROFILE $REGION $VERBOSE
-echo '#=== LBS:'
-aws-list-lbs.sh $PROFILE $REGION $VERBOSE
-echo '#=== LBV2S:'
-aws-list-lbv2s.sh $PROFILE $REGION $VERBOSE
-echo '#=== LCS:'
-aws-list-lcs.sh $PROFILE $REGION $VERBOSE
-echo '#=== RDS:'
-aws-list-rds.sh $PROFILE $REGION $VERBOSE
-echo '#=== S3:'
-aws-list-s3.sh $PROFILE $REGION $VERBOSE
-echo '#=== SG:'
-aws-list-sg.sh $PROFILE $REGION $VERBOSE
-echo '#=== SQS:'
-aws-list-sqs.sh $PROFILE $REGION $VERBOSE
-echo '#=== SUBNETS:'
-aws-list-subnets.sh $PROFILE $REGION $VERBOSE
-echo '#=== VPCS:'
-aws-list-vpcs.sh $PROFILE $REGION $VERBOSE
-echo '#=== CLOUDFORMATION STACKS:'
-aws-list-cloudformation.sh $PROFILE $REGION $VERBOSE
+PKGDIR=$(dirname "$0")
+PROGRAMS=( $PKGDIR/aws-list-*.sh )
+
+for n in "${PROGRAMS[@]}"; do
+
+  # Don't run ourselves:
+  if [[ "$n" == "$0" ]]; then continue; fi
+
+  NAME=$(basename "$n" .sh | sed 's/^aws-list-//')
+
+  # Skip events, rules, activities:
+  if [[ "$NAME" =~ events ]]; then continue; fi
+  if [[ "$NAME" == sg-rules ]]; then continue; fi
+  if [[ "$NAME" == scaling-activities ]]; then continue; fi
+
+  echo "#=== ${NAME}:"
+  OUTPUT=$($n $PROFILE $REGION $VERBOSE)
+  if [[ "$OUTPUT" == "" ]]; then
+    echo "#  none";
+  else
+    echo "$OUTPUT" | sed 's/^/   /';
+  fi
+done
