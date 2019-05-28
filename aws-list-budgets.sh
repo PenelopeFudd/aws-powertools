@@ -13,7 +13,7 @@ while getopts ":r:p:v" opt; do
 done
 shift $((OPTIND-1))
 
-if ! account=$(aws sts get-caller-identity --output text | gawk '{print $1}'); then
+if ! account=$(aws $PROFILE $REGION sts get-caller-identity --output text | gawk '{print $1}'); then
   echo "# Unable to determine account number" >&2
   exit 1
 fi
