@@ -52,10 +52,10 @@ echo "$policy" \
       --source-arn '\(.Condition.ArnLike.\"AWS:SourceArn\")'\n\"" \
   > "$base.policy.sh"
 
-json=$(echo "$a" | jq -c --arg base "$base" '
+json=$(echo "$a" | jq --arg base "$base" '
     .Configuration as $c
     | $c
-    | { "FunctionName": .FunctionName,     "Code": { "ZipFile": "fileb://\($base).zip" }}
+    | { "FunctionName": .FunctionName }
     | if $c.Description       then . += {"Description":       $c.Description}      else . end
     | if $c.Environment       then . += {"Environment":       $c.Environment}      else . end
     | if $c.Handler           then . += {"Handler":           $c.Handler}          else . end
@@ -74,6 +74,8 @@ json=$(echo "$a" | jq -c --arg base "$base" '
     | if $c.DeadLetterConfig  then . += {"DeadLetterConfig":  $c.DeadLetterConfig} else . end
 ')
 
-echo "aws $PROFILE $REGION lambda create-function --cli-input-json '$json'" > "$base.create.sh"
-chmod a+rx "$base.create.sh" "$base.zip" "$base.json" "$base.env" "$base.policy.sh"
+echo "aws $PROFILE $REGION lambda create-function  \\
+   --zip-file 'fileb://$1.zip'  \\
+   --cli-input-json '$json'" > "$base.create.sh"
+chmod a+rx "$base.create.sh" "$base.zip" "$base.json" "$base.policy.sh"
 ls -l "$base.create.sh" "$base.zip" "$base.json" "$base.env" "$base.policy.sh"
