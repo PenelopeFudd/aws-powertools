@@ -17,5 +17,5 @@ if ! which jq > /dev/null 2>&1; then echo "The 'jq' command is not installed, ab
 if [[ "$VERBOSE" != "" ]]; then
   aws $PROFILE $REGION lambda list-functions | jq '.Functions[]'
 else
-  aws $PROFILE $REGION lambda list-functions | jq -r '.Functions[].FunctionName'
+  aws $PROFILE $REGION lambda list-functions | jq -r '.Functions[].FunctionName' | sort
 fi

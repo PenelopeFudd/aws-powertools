@@ -20,12 +20,20 @@ if [[ "$VERBOSE" == 0 ]]; then
   aws $PROFILE $REGION rds describe-db-instances | jq -r '.DBInstances[] | select ( .DBInstanceStatus != "deleting" ) | .DBInstanceIdentifier'
   exit 0
 fi
+
 if [[ "$VERBOSE" == 1 ]]; then
   aws $PROFILE $REGION rds describe-db-instances  \
     | jq -r '.DBInstances[] | [.DBInstanceIdentifier,.DBInstanceStatus] | @csv'
   exit 0
 fi
+
 if [[ "$VERBOSE" == 2 ]]; then
+  aws $PROFILE $REGION rds describe-db-instances  \
+    | jq -r '.DBInstances[] | "\(.DBInstanceIdentifier)  \"DB_HOST\": \"\(.Endpoint.Address)\""'
+  exit 0
+fi
+
+if [[ "$VERBOSE" == 3 ]]; then
   aws $PROFILE $REGION rds describe-db-instances 
   exit 0
 fi

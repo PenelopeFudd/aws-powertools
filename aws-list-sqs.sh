@@ -24,10 +24,3 @@ if [[ "$VERBOSE" == 1 ]]; then
   aws $PROFILE $REGION sqs list-queues
   exit 0
 fi
-
-# {
-#     "QueueUrls": [
-#         "https://us-west-2.queue.amazonaws.com/325606292698/email.fifo", 
-#         "https://us-west-2.queue.amazonaws.com/325606292698/email_detected.fifo"
-#     ]
-# }
