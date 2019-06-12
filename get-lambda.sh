@@ -29,13 +29,13 @@ base="$2"
 if [[ "$base" == "" ]]; then base="$1"; fi
 
 if ! a=$(aws $PROFILE $REGION lambda get-function --function-name "$1" 2>&1); then echo "Error: $a" >&2; exit 1; fi
-echo "$a" > "$base.json"
+#echo "$a" > "$base.json"
 
 url=$(echo "$a" | jq -r .Code.Location)
 curl -sS "$url" > "$base.zip"
 
 envstring=$(echo "$a" | jq -c .Configuration.Environment)
-echo "$envstring" > "$base.env"
+#echo "$envstring" > "$base.env"
 
 if ! policy=$(aws $PROFILE $REGION lambda get-policy --function-name "$1" 2>&1); then policy=""; fi
 
@@ -51,6 +51,8 @@ echo "$policy" \
       --principal \(.Principal.Service) \\\\
       --source-arn '\(.Condition.ArnLike.\"AWS:SourceArn\")'\n\"" \
   > "$base.policy.sh"
+
+if [[ ! -s "$base.policy.sh" ]]; then rm "$base.policy.sh"; fi
 
 json=$(echo "$a" | jq --arg base "$base" '
     .Configuration as $c
@@ -77,5 +79,5 @@ json=$(echo "$a" | jq --arg base "$base" '
 echo "aws $PROFILE $REGION lambda create-function  \\
    --zip-file 'fileb://$1.zip'  \\
    --cli-input-json '$json'" > "$base.create.sh"
-chmod a+rx "$base.create.sh" "$base.zip" "$base.json" "$base.policy.sh"
-ls -l "$base.create.sh" "$base.zip" "$base.json" "$base.env" "$base.policy.sh"
+chmod a+rx "$base.create.sh" "$base.policy.sh"
+ls -l "$base.create.sh" "$base.zip" "$base.policy.sh"

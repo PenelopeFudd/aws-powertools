@@ -27,7 +27,7 @@ if [[ "$VERBOSE" == 1 ]]; then
     | (echo IoT_Topic_Rule,Lambda_Function; jq -r ". \
       | .rule.ruleName as \$IoTName \
       | .rule.actions[].lambda.functionArn \
-      | (. | gsub(\".*:\"; \"\")) as \$lambdaName
+      | (. // \"n/a\" | gsub(\".*:\"; \"\")) as \$lambdaName
       | [\$IoTName, \$lambdaName] \
       | @csv \
       " | sort ) \
@@ -38,13 +38,11 @@ fi
 # Very verbose
 if [[ "$VERBOSE" == 2 ]]; then
   for n in $(aws $PROFILE $REGION iot list-topic-rules --query 'rules[].ruleName' --output text | fmt -w 2 | sort) ; do
-
     aws $PROFILE $REGION iot get-topic-rule --rule-name "$n" \
-      | jq -rc \
+      | jq -r \
    --arg PROFILE "$PROFILE" \
    --arg REGION "$REGION" \
-    '
-    ({
+    '({
       "ruleName": .rule.ruleName,
       "topicRulePayload": {
 	"sql": .rule.sql,
@@ -57,8 +55,8 @@ if [[ "$VERBOSE" == 2 ]]; then
     | ("# IoT Topic Rule \(.rule.ruleName)",
         ([ "aws", $PROFILE, $REGION, "iot", "create-topic-rule", "--cli-input-json", $json ] | join(" ")),
 	""
-      )
-  '
+      )'
+
   done
   exit 0
 fi
