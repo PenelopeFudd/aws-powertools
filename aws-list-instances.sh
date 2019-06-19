@@ -1,5 +1,6 @@
 #!/bin/bash
 # Parse arguments:
+VERBOSE=0
 while getopts ":r:p:vd" opt; do
   case $opt in
     r) REGION="--region $OPTARG";;
@@ -14,14 +15,15 @@ shift $((OPTIND-1))
 
 if ! which jq > /dev/null 2>&1; then echo "The 'jq' command is not installed, aborting." >&2; exit 1; fi
 
-
 if [[ "$DEBUG" == 1 ]]; then
   aws $PROFILE $REGION ec2 describe-instances
+  exit 0
 fi
 
 if [[ "$VERBOSE" == 2 ]]; then
 # Very Verbose:
   aws $PROFILE $REGION ec2 describe-instances | jq '.Reservations[].Instances[]'
+  exit 0
 fi
 
 if [[ "$VERBOSE" == 1 ]]; then
@@ -55,8 +57,12 @@ if [[ "$VERBOSE" == 1 ]]; then
     ) \
       | column -t -s '%' \
 
-else
+  exit 0
+fi
+
+if [[ "$VERBOSE" == 0 ]]; then
   # Brief:
   aws $PROFILE $REGION ec2 describe-instance-status | jq -r '.InstanceStatuses[].InstanceId' | sort
+  exit 0
 fi
 
