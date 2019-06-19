@@ -37,6 +37,7 @@ if [[ "$VERBOSE" == 1 ]]; then
      | "
       \(.InstanceId)
      %\"\(if .Tags and ([.Tags[] | select ( .Key == "Name" )] != []) then .Tags[] | select ( .Key == "Name" ) | .Value else "-" end)\"
+     %\"\(if .Tags and ([.Tags[] | select ( .Key == "aws:cloudformation:stack-name" )] != []) then .Tags[] | select ( .Key == "aws:cloudformation:stack-name" ) | .Value else "-" end)\"
      %\(.KeyName)
      %\(if .PublicIpAddress then .PublicIpAddress else "-" end)
      %\(if .PrivateIpAddress then .PrivateIpAddress else "-" end)
@@ -49,7 +50,7 @@ if [[ "$VERBOSE" == 1 ]]; then
 #     %\"\(if .Tags then [.Tags[] | select( .Key != "Name") |"\(.Key)=\(.Value)"] | join(",") else "-" end)\"
 
   echo "# aws $PROFILE $REGION ec2 describe-instances"
-  (echo "InstanceId%Name%KeyName%PublicIpAddress%PrivateIpAddress%LaunchTime%InstanceType%State";
+  (echo "InstanceId%Name%StackName%KeyName%PublicIpAddress%PrivateIpAddress%LaunchTime%InstanceType%State";
       aws $PROFILE $REGION ec2 describe-instances  \
       | jq -r "$JQCODE"  \
       | sed 's/.000Z//g'  \
