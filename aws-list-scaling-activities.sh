@@ -18,5 +18,5 @@ if ! which jq > /dev/null 2>&1; then echo "The 'jq' command is not installed, ab
 if [[ "$VERBOSE" != "" ]]; then
   aws $PROFILE $REGION autoscaling describe-scaling-activities --max-items 60
 else
-  aws $PROFILE $REGION autoscaling describe-scaling-activities --max-items 60 | jq -r '.Activities[] | [ .StartTime, .AutoScalingGroupName , .Description ] | @tsv' | sort
+  aws $PROFILE $REGION autoscaling describe-scaling-activities --max-items 60 | jq -r '.Activities[] | [ .StartTime, ( (now - ( "\(.StartTime[0:19])Z" | fromdate) | (. / 3600) | floor) | "\(.) hours"), .AutoScalingGroupName , .Description ] | @tsv' | sort | column -t -s$'\t'
 fi
