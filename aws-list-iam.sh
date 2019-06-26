@@ -15,7 +15,6 @@ shift $((OPTIND-1))
 
 if ! which jq > /dev/null 2>&1; then echo "The 'jq' command is not installed, aborting." >&2; exit 1; fi
 
-
 if [[ "$VERBOSE" == 0 ]]; then
   aws $PROFILE $REGION iam list-roles | jq -r '.Roles[].RoleName'
   exit 0
@@ -23,6 +22,7 @@ fi
 if [[ "$VERBOSE" == 1 ]]; then
   all=$(aws $PROFILE $REGION iam list-roles)
   roles=$(echo "$all" | jq -r '.Roles[].RoleName')
+  if [[ "$*" != "" ]]; then roles="$*"; fi
 
   for n in $roles; do 
     echo "# Role: $n"

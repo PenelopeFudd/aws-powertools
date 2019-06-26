@@ -49,7 +49,7 @@ if [[ "$VERBOSE" == 1 ]]; then
 # Other tags:
 #     %\"\(if .Tags then [.Tags[] | select( .Key != "Name") |"\(.Key)=\(.Value)"] | join(",") else "-" end)\"
 
-  echo "# aws $PROFILE $REGION ec2 describe-instances"
+  #echo "# aws $PROFILE $REGION ec2 describe-instances"
   (echo "InstanceId%Name%StackName%KeyName%PublicIpAddress%PrivateIpAddress%LaunchTime%InstanceType%State";
       aws $PROFILE $REGION ec2 describe-instances  \
       | jq -r "$JQCODE"  \
