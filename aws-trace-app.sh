@@ -56,15 +56,15 @@ function main() {
 function myaws() { aws $PROFILE $REGION "$@"; }
 
 function find_distribution_by_endpoint () {
-   if ! a=$(myaws cloudfront list-distributions ); then echo "Error: $a" >&2; return 1; fi
+   if ! a=$(myaws cloudfront list-distributions 2>&1); then echo Error: $a >&2; return 1; fi
    b=$(echo "$a" | jq --arg ep "$1" -r '.DistributionList.Items[] | select( .DomainName == $ep) | .Id')
    if [[ "$b" != "" ]]; then echo "$b"; return ; fi
-   echo "Error: $b"
+   echo "The cloudfront endpoint $1 was not found in the profile ${PROFILE##--profile?}" >&2
    return 1
 }
 
 function find_s3_by_endpoint () {
-   if ! a=$(myaws cloudfront list-distributions ); then echo "Error: $a" >&2; return 1; fi
+   if ! a=$(myaws cloudfront list-distributions 2>&1); then echo "Error: $a" >&2; return 1; fi
    b=$(echo "$a" | jq --arg ep "$1" -r '
      .DistributionList.Items[] 
      | select( .DomainName == $ep) 
@@ -90,7 +90,7 @@ function find_apigw_by_endpoint () {
 }
 
 function find_authorizers_by_apigw () {
-   if ! a=$(myaws apigateway get-authorizers --rest-api-id $1 ); then echo "Error: $a" >&2; return 1; fi
+   if ! a=$(myaws apigateway get-authorizers --rest-api-id $1 2>&1); then echo "Error: $a" >&2; return 1; fi
    b=$(echo "$a" | jq -r '.items[0].providerARNs[0]')
    if [[ "$b" == "" ]]; then echo "Error: Could not find cognito_user_pool for apigw $1" >&2; return 1; fi
    echo "${b##*/}"
@@ -98,7 +98,7 @@ function find_authorizers_by_apigw () {
 
 
 function find_latestdeployment_by_apigw () {
-   if ! a=$(myaws apigateway get-deployments --rest-api-id $1 ); then echo "Error: $a" >&2; return 1; fi
+   if ! a=$(myaws apigateway get-deployments --rest-api-id $1 2>&1); then echo "Error: $a" >&2; return 1; fi
    b=$(echo "$a" | jq -r '.items | sort_by(.createdDate)[-1].id')
    if [[ "$b" == "" ]]; then echo "Error: Could not find last deployment for apigw $1" >&2; return 1; fi
    echo "${b##*/}"
