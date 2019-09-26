@@ -5,10 +5,10 @@ function main() {
   check_executables
   parse_arguments "$@"
   check_profile
-  if [[ "$GROUP"  == ""  ]]; then show_groups;       exit $?; fi
-  if [[ "$FILTER" != ""  ]]; then filter_log_events; exit $?; fi
-  if [[ "$STREAM" == ""  ]]; then show_streams;      exit $?; fi
-  if [[ "$STREAM" != "*" ]]; then get_stream;        exit $?; fi
+  if [[ "$GROUP"  == ""     ]]; then show_groups;       exit $?; fi
+  if [[ "$FILTER" != "    " ]]; then filter_log_events; exit $?; fi
+  if [[ "$STREAM" == ""     ]]; then show_streams;      exit $?; fi
+  if [[ "$STREAM" != "*"    ]]; then get_stream;        exit $?; fi
   get_all_streams
   exit $? 
 }
@@ -42,6 +42,7 @@ function parse_arguments() {
   # Defaults:
   REGION="us-west-2"
   PAGER=${PAGER:-more}
+  FILTER="    "
 
   # Parse arguments:
   while getopts ":b:de:f:F:g:lp:r:s:S:u:w" opt; do
@@ -253,13 +254,17 @@ function awslogs() {
 
   # Error found:
   if [[ "$t_err" =~ An\ error\ occurred\ .ExpiredTokenException ]]; then
-    return $t_ret
+    return 1
   fi
   if [[ "$t_err" =~ Unable\ to\ locate\ credentials ]]; then
-    return $t_ret
+    return 2
   fi
   if [[ "$t_err" =~ The\ security\ token\ included\ in\ the\ request\ is\ invalid. ]]; then
-    return $t_ret
+    return 3
+  fi
+  #An error occurred (ThrottlingException) when calling the DescribeLogGroups operation (reached max retries: 4): Rate exceeded
+  if [[ "$t_err" =~ An\ error\ occurred.*Rate\ exceeded ]]; then
+    return 4
   fi
 
   # Unknown error:
@@ -274,6 +279,8 @@ function check_profile() {
 function show_groups() {
   if [[ "$GROUPS_JSON" == "" ]]; then
     GROUPS_JSON=$(awslogs describe-log-groups)
+    rc=$?
+    if [[ "$rc" -gt 0 ]]; then return $rc; fi
   fi
 
   if [[ "$GROUPS_JSON" == "" ]]; then
@@ -317,6 +324,7 @@ function get_log_events () {
     a=$(awslogs get-log-events --log-group-name "$group" --log-stream-name "$stream" \
       $NBT \
       $begin_time $end_time )
+    rc=$?;  if [[ $rc != 0 ]]; then return $rc; fi
 
     lastToken="$nextBackwardToken"
     nextBackwardToken=$(echo "$a" | jq -r '.nextBackwardToken' 2>/dev/null)
@@ -336,8 +344,8 @@ function get_log_events () {
   done
 
   if [[ "$data_seen" == "" ]]; then
-    echo "# No log data found for profile $PROFILE, log group $group, log stream $stream in the given time range."
-    echo "# Maybe try a bigger time range?"
+    #echo "# No log data found for profile $PROFILE, log group $group, log stream $stream in the given time range."
+    #echo "# Maybe try a bigger time range?"
     return 1
   fi
 }
@@ -353,6 +361,7 @@ function filter_log_events() {
   local lastToken=""
 
   GROUPS_JSON=$(awslogs describe-log-groups)
+  rc=$?;  if [[ $rc != 0 ]]; then return $rc; fi
   count=$(echo "$GROUPS_JSON"  \
       | jq -r \
         --arg group "${group}" \
@@ -380,13 +389,24 @@ function filter_log_events() {
     if [[ "$nextBackwardToken" == null ]]; then break; fi
     if [[ "$nextBackwardToken" != "" ]]; then NBT="--next-token $nextBackwardToken"; fi
 
+
     # Execute the command:
-    a=$(awslogs filter-log-events --log-group-name "$group"  \
-      $lsname \
-      $NBT \
-      $begin_time $end_time \
-      --filter-pattern "$filter_pattern" \
-      )
+    if [[ "$filter_pattern" == "" || "$filter_pattern" == "\"\"" ]]; then
+        a=$(awslogs filter-log-events --log-group-name "$group"  \
+          $lsname \
+          $NBT \
+          $begin_time $end_time \
+          )
+        rc=$?;  if [[ $rc != 0 ]]; then return $rc; fi
+    else
+        a=$(awslogs filter-log-events --log-group-name "$group"  \
+          $lsname \
+          $NBT \
+          $begin_time $end_time \
+          --filter-pattern "$filter_pattern" \
+          )
+        rc=$?;  if [[ $rc != 0 ]]; then return $rc; fi
+    fi
 
     if [[ "$a" == "" ]]; then exit 1; fi
 
@@ -407,9 +427,9 @@ function filter_log_events() {
   done
 
   if [[ "$data_seen" == "" ]]; then
-    echo "# No log data found for profile $PROFILE, log group $group, log stream $stream "
-    echo "# in the given time range and with the given search filter '$filter_pattern'."
-    echo "# Maybe try a bigger time range or a different search filter?"
+    #echo "# No log data found for profile $PROFILE, log group $group, log stream $stream "
+    #echo "# in the given time range and with the given search filter '$filter_pattern'."
+    #echo "# Maybe try a bigger time range or a different search filter?"
     return 1
   fi
 
@@ -419,16 +439,16 @@ function filter_log_events() {
 function describe_log_streams () {
   local group="$1"
 
-  if [[ "$RAW" != "" ]]; then
-    awslogs describe-log-streams --log-group-name "$group"
-  else
-    awslogs describe-log-streams --log-group-name "$group" \
-      | jq -r '.logStreams[].logStreamName' 2>/dev/null
-  fi
+  local a=$(awslogs describe-log-streams --log-group-name "$group")
+  rc=$?;  if [[ $rc != 0 ]]; then return $rc; fi
+
+  if [[ "$RAW" != "" ]]; then echo "$a"; return; fi
+  echo "$a" | jq -r '.logStreams[].logStreamName' 2>/dev/null
 }
 
 function show_streams() {
   STREAMS_JSON=$(awslogs describe-log-streams --log-group-name "$GROUP")
+  rc=$?;  if [[ $rc != 0 ]]; then return $rc; fi
 
   if [[ "$RAW" != "" ]]; then echo "$STREAMS_JSON"; return; fi
 
@@ -460,5 +480,5 @@ function get_all_streams() {
   done
 }
 
-# Finally, start the program:
+# All functions have been defined, start the program:
 main "$@"
